@@ -1,5 +1,6 @@
 package com.example.demo.Controller;
 
+
 import java.util.List;
 
 import java.util.Optional;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,6 +25,7 @@ import com.example.demo.Reponsitory.OrderRepository;
 import com.example.demo.Reponsitory.ProductReponsitory;
 
 @RestController
+@CrossOrigin(origins = "*")
 public class ShopController {
 
 	@Autowired
@@ -40,6 +43,23 @@ public class ShopController {
 			return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+	
+	@GetMapping("/products/{pdId}")
+	public ResponseEntity<Object> getProductById(@PathVariable("pdId") Integer pdId) {
+	    try {
+	        Optional<Product> productOptional = productReponsitory.findById(pdId);
+
+	        if (productOptional.isPresent()) {
+	            Product product = productOptional.get();
+	            return new ResponseEntity<>(product, HttpStatus.OK);
+	        } else {
+	            return new ResponseEntity<>("Product not found", HttpStatus.NOT_FOUND);
+	        }
+	    } catch (Exception e) {
+	        return new ResponseEntity<>("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
 
 //	@PostMapping("/add-to-cart")
 //	public String addToCart(@RequestParam Integer pdId) {
@@ -53,22 +73,42 @@ public class ShopController {
 //
 //	    return "redirect:/products"; // Redirect back to the products page
 //	}
+	
 	@GetMapping("/cart")
-	public String viewCart(Model model) {
-		List<Cart> cartItems = cartRepository.findAll();
-		model.addAttribute("cartItems", cartItems);
-		return "cart";
+	public ResponseEntity<Object> viewCart() {
+	    try {
+	        List<Cart> cartItems = cartRepository.findAll();
+	        
+	        // Log the cart items to the console
+	        for (Cart cartItem : cartItems) {
+	            System.out.println("Cart ID: " + cartItem.getCartsId());
+	            System.out.println("Product Name: " + cartItem.getProduct().getPdName());
+	            System.out.println("Quantity: " + cartItem.getCartsQty());
+	            System.out.println("-------------------------");
+	        }
+
+	        // Return cartItems in the ResponseEntity body
+	        return new ResponseEntity<>(cartItems, HttpStatus.OK);
+	    } catch (Exception e) {
+	        // Handle exceptions here
+	        e.printStackTrace(); // Log the exception to the console for debugging
+	        return new ResponseEntity<>("Failed to retrieve cart items", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 
-	@GetMapping("/add-to-cart/{pdId}")
-	public ResponseEntity<String> addToCart(@PathVariable("pdId") Integer pdId) {
+	
+
+	
+	@PostMapping("/add-to-cart/{pdId}")
+	public ResponseEntity<String> addToCart(@PathVariable("pdId") Integer pdId, @RequestParam("quantity") Integer quantity) {
+		
 		try {
 			Optional<Product> productOptional = productReponsitory.findById(pdId);
 
 			if (productOptional.isPresent()) {
 				Product product = productOptional.get();
 				Cart cartItem = new Cart();
-				cartItem.setCartsQty(1); // You can set the quantity as needed
+				cartItem.setCartsQty(quantity ); 
 				cartItem.setProduct(product);
 				cartRepository.save(cartItem);
 

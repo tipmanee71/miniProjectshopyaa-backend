@@ -2,10 +2,12 @@ package com.example.demo.Model;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 
 @Entity
@@ -18,11 +20,14 @@ public class Product {
 	private String pdName;
 	private Integer pdPrice;
 	private String pdDescription;
-	private String pdImage;
+//	private String pdImage;
 	private String pdManufacturer;
 	private Date pdMfg; // แสดงฟิลด์วันที่และเวลา pd_mfg
 	private Date pdExp; // แสดงฟิลด์วันที่และเวลา pd_exp
 	
+	@Lob
+	@Column(length = 3048576)
+	private byte[] pdImage;
 	
 	public Integer getId() {
 		return id;
@@ -30,20 +35,22 @@ public class Product {
 	public void setId(Integer id) {
 		this.id = id;
 	}
+	
 	public Product() {
 		super();
 	}
-	public Product(Integer pdId,String pdName,Integer pdPrice, String pdDescription,String pdImage ,String pdManufacturer
-			,Date pdMfg, Date pdExp ) {
+	public Product(Integer id, Integer pdId, String pdName, Integer pdPrice, String pdDescription,
+			String pdManufacturer, Date pdMfg, Date pdExp, byte[] pdImage) {
 		super();
-		this.pdId =pdId;
-		this.pdPrice = pdPrice;
+		this.id = id;
+		this.pdId = pdId;
 		this.pdName = pdName;
-		   this.pdDescription = pdDescription;
-	        this.pdImage = pdImage;
-	        this.pdManufacturer = pdManufacturer;
-	        this.pdMfg = pdMfg;
-	        this.pdExp = pdExp;
+		this.pdPrice = pdPrice;
+		this.pdDescription = pdDescription;
+		this.pdManufacturer = pdManufacturer;
+		this.pdMfg = pdMfg;
+		this.pdExp = pdExp;
+		this.pdImage = pdImage;
 	}
 	public Integer getPdId() {
 		return pdId;
@@ -69,12 +76,6 @@ public class Product {
 	public void setPdDescription(String pdDescription) {
 		this.pdDescription = pdDescription;
 	}
-	public String getPdImage() {
-		return pdImage;
-	}
-	public void setPdImage(String pdImage) {
-		this.pdImage = pdImage;
-	}
 	public String getPdManufacturer() {
 		return pdManufacturer;
 	}
@@ -92,6 +93,12 @@ public class Product {
 	}
 	public void setPdExp(Date pdExp) {
 		this.pdExp = pdExp;
+	}
+	public byte[] getPdImage() {
+		return pdImage;
+	}
+	public void setPdImage(byte[] pdImage) {
+		this.pdImage = pdImage;
 	}
 	
 

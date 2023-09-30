@@ -21,6 +21,7 @@ public class Cart {
 	 private Product product;
 
 
+
 	public Integer getCartsId() {
 		return cartsId;
 	}
@@ -40,6 +41,8 @@ public class Cart {
 	}
 	public Product getProduct() {
 		return product;
+	}
+	public Integer getPdId() {return null;
 	}
 	
 	

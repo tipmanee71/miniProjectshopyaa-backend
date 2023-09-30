@@ -17,11 +17,6 @@ public class UserService {
 		userRepository.save(user);
 	}
 
-	public boolean authenticateUser(String usersEmail, String usersPass) {
-		// Retrieve the user by
-		User user = userRepository.findByUsersEmail(usersEmail);
-		return user != null && user.getUsersPass().equals(usersPass);
-	}
 
 
 }

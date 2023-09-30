@@ -21,7 +21,12 @@ public class User {
 	private String usersAddress;
 	private String usersPhone;
 	
-	 public User(String usersName, String usersPass, String usersFirst, String usersLast, String usersEmail, String usersAddress, String usersPhone) {
+	
+	 public User() {
+		super();
+	}
+
+	public User(String usersName, String usersPass, String usersFirst, String usersLast, String usersEmail, String usersAddress, String usersPhone) {
 	        this.usersName = usersName;
 	        this.usersPass = usersPass;
 	        this.usersFirst = usersFirst;
