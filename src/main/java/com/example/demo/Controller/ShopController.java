@@ -1,18 +1,24 @@
 package com.example.demo.Controller;
 
 
-import java.util.List;
 
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,6 +27,7 @@ import com.example.demo.Model.Order;
 import com.example.demo.Model.OrderItem;
 import com.example.demo.Model.Product;
 import com.example.demo.Reponsitory.CartRepository;
+import com.example.demo.Reponsitory.OrderItemRepository;
 import com.example.demo.Reponsitory.OrderRepository;
 import com.example.demo.Reponsitory.ProductReponsitory;
 
@@ -33,6 +40,9 @@ public class ShopController {
 
 	@Autowired
 	ProductReponsitory productReponsitory;
+	
+	@Autowired
+	OrderItemRepository orderItemRepository;
 
 	@GetMapping("/products")
 	public ResponseEntity<Object> getProducts() {
@@ -120,27 +130,21 @@ public class ShopController {
 		
 	}
 
-	@GetMapping("/remove-from-cart/{pdId}")
-	public String removeFromCart(@PathVariable("pdId") Integer pdId) {
-		// Get the cart items for the specified product ID
-		List<Cart> cartItemsToRemove = cartRepository.findByProductPdId(pdId);
 
-		// Loop through the cart items and delete them
-		for (Cart cartItem : cartItemsToRemove) {
-			cartRepository.deleteById(cartItem.getCartsId());
-		}
 
-		return "redirect:/cart";
-	}
+	
+	@DeleteMapping("/remove/{cartsId}")
+    public ResponseEntity<String> removeFromCart(@PathVariable Integer cartsId) {
+        Optional<Cart> cartItem = cartRepository.findById(cartsId);
+        if (cartItem.isPresent()) {
+            cartRepository.delete(cartItem.get());
+            return ResponseEntity.ok("Product removed from the cart");
+        }
+        return ResponseEntity.notFound().build();
+    }
+	
+	
 
-	@GetMapping("/clear-cart")
-	public String clearCart() {
-		cartRepository.deleteAll(); // Delete all cart items
-		return "redirect:/cart";
-	}
-
-	@Autowired
-	OrderRepository orderRepository;
 
 	@GetMapping("/select-items-for-order")
 	public String selectItemsForOrder(Model model) {
@@ -148,34 +152,76 @@ public class ShopController {
 		model.addAttribute("cartItems", cartItems);
 		return "select-items-for-order"; // Create a corresponding HTML template for this view
 	}
+	
+	
+//
+//	   @PostMapping("/create-order-item")
+//	    public ResponseEntity<Object> createOrderItem(@RequestBody Map<String, Integer> selectedItems) {
+//	        Integer cartsId = selectedItems.get("cartsId");
+//	        Integer cartsQty = selectedItems.get("cartsQty");
+//
+//	        if (cartsId != null && cartsQty != null) {
+//	        	
+//	            OrderItem orderItem = new OrderItem();
+//	            orderItem.setCartsId(cartsId);
+//	            orderItem.setCartsQty(cartsQty);
+//
+//	            // Save the OrderItem to the database
+//	            orderItemRepository.save(orderItem);
+//
+//	            return ResponseEntity.status(HttpStatus.OK).body(orderItem);
+//	        } else {
+//	        	 return new ResponseEntity<>("Invalid data. Please check cartsId and cartsQty." , HttpStatus.INTERNAL_SERVER_ERROR);
+//	        }
+//	    }
+//	   
+	@PostMapping("/create-order-item")
+	public ResponseEntity<Object> createOrderItem(@RequestBody List<OrderItem> orderItems) {
+	    try {
+	        List<OrderItem> createdOrderItems = new ArrayList<>();
+	        for (OrderItem orderItem : orderItems) {
+	            Integer cartsId = orderItem.getCartsId();
+	            Integer cartsQty = orderItem.getCartsQty();
 
-	@PostMapping("/order-items")
-	public String orderSelectedItems(@RequestParam("selectedItems") List<Integer> selectedItems) {
-		// สร้างคำสั่งซื้อใหม่และเพิ่มรายการที่เลือกลงไป
-		Order order = new Order();
+	            // Check if cartsId and cartsQty are not null
+	            if (cartsId != null && cartsQty != null) {
+	                // Find the cart item by its ID
+	                Optional<Cart> cartOptional = cartRepository.findById(cartsId);
 
-		for (Integer cartItemId : selectedItems) {
-			Optional<Cart> cartItemOptional = cartRepository.findById(cartItemId);
+	                if (cartOptional.isPresent()) {
+	                    Cart cart = cartOptional.get();
 
-			if (cartItemOptional.isPresent()) {
-				Cart cartItem = cartItemOptional.get();
+	                    // Create an OrderItem
+	                    OrderItem newOrderItem = new OrderItem();
+	                    newOrderItem.setProduct(cart.getProduct());
+	                    newOrderItem.setCartsQty(cartsQty);
 
-				// สร้าง OrderItem จากรายการรถเข็นและเพิ่มลงในคำสั่งซื้อ
-				OrderItem orderItem = new OrderItem();
-				orderItem.setProduct(cartItem.getProduct());
-				orderItem.setQuantity(cartItem.getCartsQty());
-				orderItem.setOrder(order);
-				order.addOrderItem(orderItem);
+	                    // Save the OrderItem to the database
+	                    OrderItem savedOrderItem = orderItemRepository.save(newOrderItem);
+	                    createdOrderItems.add(savedOrderItem);
 
-				// ลบรายการที่เลือกออกจากรถเข็น
-				cartRepository.delete(cartItem);
-			}
-		}
+	                    // Delete the cart item from the Cart table
+	                    cartRepository.delete(cart);
+	                } else {
+	                    return new ResponseEntity<>("Cart item not found.", HttpStatus.NOT_FOUND);
+	                }
+	            } else {
+	                // Handle the case when cartsId or cartsQty are null
+	                // You can choose to skip this order item or handle it differently
+	                // For now, we'll just skip it
+	                continue;
+	            }
+	        }
 
-		// Save the order to the database
-		orderRepository.save(order);
-
-		return "redirect:/cart"; // Redirect back to the cart or another appropriate page
+	        return ResponseEntity.status(HttpStatus.OK).body(createdOrderItems);
+	    } catch (Exception e) {
+	        return new ResponseEntity<>("Failed to create order items.", HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
 	}
 
-}
+	
+	
+	}
+
+ 
+

@@ -7,7 +7,9 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.Lob;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,6 +30,9 @@ public class Product {
 	@Lob
 	@Column(length = 3048576)
 	private byte[] pdImage;
+	
+	@OneToMany
+	@JoinColumn(name = " cartsId")
 	
 	public Integer getId() {
 		return id;

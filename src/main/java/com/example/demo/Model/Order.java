@@ -25,6 +25,7 @@ public class Order {
 	@Temporal(TemporalType.TIMESTAMP)
 	private Date orderDate;
 
+	
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItem> orderItems = new ArrayList<>();
 

@@ -1,9 +1,13 @@
 package com.example.demo.Model;
 
 import jakarta.persistence.Entity;
+
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,6 +25,7 @@ public class User {
 	private String usersAddress;
 	private String usersPhone;
 	
+
 	
 	 public User() {
 		super();
@@ -35,7 +40,14 @@ public class User {
 	        this.usersAddress = usersAddress;
 	        this.usersPhone = usersPhone;
 	    }
-
+	
+	@OneToMany
+	@JoinColumn(name =" orderId")
+	
+	@OneToOne
+	@JoinColumn(name ="cartsId")
+	
+	
 	public Integer getUsersId() {
 		return usersId;
 	}
@@ -100,4 +112,5 @@ public class User {
 		this.usersPhone = usersPhone;
 	}
 	 
+	
 }
